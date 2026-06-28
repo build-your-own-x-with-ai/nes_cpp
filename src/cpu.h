@@ -104,4 +104,14 @@ private:
 
     void set_carry_flag();
     void clear_carry_flag();
+
+    // Unofficial/Illegal opcodes
+    void lax(const AddressingMode& mode);
+    void sax(const AddressingMode& mode);
+    void dcp(const AddressingMode& mode);
+    void isb(const AddressingMode& mode);
+    void slo(const AddressingMode& mode);
+    void rla(const AddressingMode& mode);
+    void sre(const AddressingMode& mode);
+    void rra(const AddressingMode& mode);
 };

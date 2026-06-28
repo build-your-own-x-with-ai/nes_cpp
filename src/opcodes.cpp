@@ -6,6 +6,103 @@ static const std::vector<OpCode> CPU_OPS_CODES = {
     OpCode{0x00, "BRK", 1, 7, AddressingMode::NoneAddressing},
     OpCode{0xea, "NOP", 1, 2, AddressingMode::NoneAddressing},
 
+    // Unofficial/Illegal NOPs (read but do nothing)
+    OpCode{0x04, "NOP", 2, 3, AddressingMode::ZeroPage},      // DOP (SKB)
+    OpCode{0x44, "NOP", 2, 3, AddressingMode::ZeroPage},      // DOP (SKB)
+    OpCode{0x64, "NOP", 2, 3, AddressingMode::ZeroPage},      // DOP (SKB)
+    OpCode{0x14, "NOP", 2, 4, AddressingMode::ZeroPage_X},    // DOP (SKB)
+    OpCode{0x34, "NOP", 2, 4, AddressingMode::ZeroPage_X},    // DOP (SKB)
+    OpCode{0x54, "NOP", 2, 4, AddressingMode::ZeroPage_X},    // DOP (SKB)
+    OpCode{0x74, "NOP", 2, 4, AddressingMode::ZeroPage_X},    // DOP (SKB)
+    OpCode{0xd4, "NOP", 2, 4, AddressingMode::ZeroPage_X},    // DOP (SKB)
+    OpCode{0xf4, "NOP", 2, 4, AddressingMode::ZeroPage_X},    // DOP (SKB)
+    OpCode{0x0c, "NOP", 3, 4, AddressingMode::Absolute},      // TOP
+    OpCode{0x1c, "NOP", 3, 4, AddressingMode::Absolute_X},    // TOP
+    OpCode{0x3c, "NOP", 3, 4, AddressingMode::Absolute_X},    // TOP
+    OpCode{0x5c, "NOP", 3, 4, AddressingMode::Absolute_X},    // TOP
+    OpCode{0x7c, "NOP", 3, 4, AddressingMode::Absolute_X},    // TOP
+    OpCode{0xdc, "NOP", 3, 4, AddressingMode::Absolute_X},    // TOP
+    OpCode{0xfc, "NOP", 3, 4, AddressingMode::Absolute_X},    // TOP
+    OpCode{0x1a, "NOP", 1, 2, AddressingMode::NoneAddressing},
+    OpCode{0x3a, "NOP", 1, 2, AddressingMode::NoneAddressing},
+    OpCode{0x5a, "NOP", 1, 2, AddressingMode::NoneAddressing},
+    OpCode{0x7a, "NOP", 1, 2, AddressingMode::NoneAddressing},
+    OpCode{0xda, "NOP", 1, 2, AddressingMode::NoneAddressing},
+    OpCode{0xfa, "NOP", 1, 2, AddressingMode::NoneAddressing},
+    OpCode{0x80, "NOP", 2, 2, AddressingMode::Immediate},
+    OpCode{0x82, "NOP", 2, 2, AddressingMode::Immediate},
+    OpCode{0x89, "NOP", 2, 2, AddressingMode::Immediate},
+    OpCode{0xc2, "NOP", 2, 2, AddressingMode::Immediate},
+    OpCode{0xe2, "NOP", 2, 2, AddressingMode::Immediate},
+
+    // Unofficial LAX - Load A and X with memory
+    OpCode{0xa7, "LAX", 2, 3, AddressingMode::ZeroPage},
+    OpCode{0xb7, "LAX", 2, 4, AddressingMode::ZeroPage_Y},
+    OpCode{0xaf, "LAX", 3, 4, AddressingMode::Absolute},
+    OpCode{0xbf, "LAX", 3, 4, AddressingMode::Absolute_Y},
+    OpCode{0xa3, "LAX", 2, 6, AddressingMode::Indirect_X},
+    OpCode{0xb3, "LAX", 2, 5, AddressingMode::Indirect_Y},
+
+    // Unofficial SAX - Store A AND X
+    OpCode{0x87, "SAX", 2, 3, AddressingMode::ZeroPage},
+    OpCode{0x97, "SAX", 2, 4, AddressingMode::ZeroPage_Y},
+    OpCode{0x83, "SAX", 2, 6, AddressingMode::Indirect_X},
+    OpCode{0x8f, "SAX", 3, 4, AddressingMode::Absolute},
+
+    // Unofficial DCP - Decrement memory then compare with A
+    OpCode{0xc7, "DCP", 2, 5, AddressingMode::ZeroPage},
+    OpCode{0xd7, "DCP", 2, 6, AddressingMode::ZeroPage_X},
+    OpCode{0xcf, "DCP", 3, 6, AddressingMode::Absolute},
+    OpCode{0xdf, "DCP", 3, 7, AddressingMode::Absolute_X},
+    OpCode{0xdb, "DCP", 3, 7, AddressingMode::Absolute_Y},
+    OpCode{0xc3, "DCP", 2, 8, AddressingMode::Indirect_X},
+    OpCode{0xd3, "DCP", 2, 8, AddressingMode::Indirect_Y},
+
+    // Unofficial ISB/ISC - Increment memory then SBC
+    OpCode{0xe7, "ISB", 2, 5, AddressingMode::ZeroPage},
+    OpCode{0xf7, "ISB", 2, 6, AddressingMode::ZeroPage_X},
+    OpCode{0xef, "ISB", 3, 6, AddressingMode::Absolute},
+    OpCode{0xff, "ISB", 3, 7, AddressingMode::Absolute_X},
+    OpCode{0xfb, "ISB", 3, 7, AddressingMode::Absolute_Y},
+    OpCode{0xe3, "ISB", 2, 8, AddressingMode::Indirect_X},
+    OpCode{0xf3, "ISB", 2, 8, AddressingMode::Indirect_Y},
+
+    // Unofficial SLO - ASL then ORA
+    OpCode{0x07, "SLO", 2, 5, AddressingMode::ZeroPage},
+    OpCode{0x17, "SLO", 2, 6, AddressingMode::ZeroPage_X},
+    OpCode{0x0f, "SLO", 3, 6, AddressingMode::Absolute},
+    OpCode{0x1f, "SLO", 3, 7, AddressingMode::Absolute_X},
+    OpCode{0x1b, "SLO", 3, 7, AddressingMode::Absolute_Y},
+    OpCode{0x03, "SLO", 2, 8, AddressingMode::Indirect_X},
+    OpCode{0x13, "SLO", 2, 8, AddressingMode::Indirect_Y},
+
+    // Unofficial RLA - ROL then AND
+    OpCode{0x27, "RLA", 2, 5, AddressingMode::ZeroPage},
+    OpCode{0x37, "RLA", 2, 6, AddressingMode::ZeroPage_X},
+    OpCode{0x2f, "RLA", 3, 6, AddressingMode::Absolute},
+    OpCode{0x3f, "RLA", 3, 7, AddressingMode::Absolute_X},
+    OpCode{0x3b, "RLA", 3, 7, AddressingMode::Absolute_Y},
+    OpCode{0x23, "RLA", 2, 8, AddressingMode::Indirect_X},
+    OpCode{0x33, "RLA", 2, 8, AddressingMode::Indirect_Y},
+
+    // Unofficial SRE - LSR then EOR
+    OpCode{0x47, "SRE", 2, 5, AddressingMode::ZeroPage},
+    OpCode{0x57, "SRE", 2, 6, AddressingMode::ZeroPage_X},
+    OpCode{0x4f, "SRE", 3, 6, AddressingMode::Absolute},
+    OpCode{0x5f, "SRE", 3, 7, AddressingMode::Absolute_X},
+    OpCode{0x5b, "SRE", 3, 7, AddressingMode::Absolute_Y},
+    OpCode{0x43, "SRE", 2, 8, AddressingMode::Indirect_X},
+    OpCode{0x53, "SRE", 2, 8, AddressingMode::Indirect_Y},
+
+    // Unofficial RRA - ROR then ADC
+    OpCode{0x67, "RRA", 2, 5, AddressingMode::ZeroPage},
+    OpCode{0x77, "RRA", 2, 6, AddressingMode::ZeroPage_X},
+    OpCode{0x6f, "RRA", 3, 6, AddressingMode::Absolute},
+    OpCode{0x7f, "RRA", 3, 7, AddressingMode::Absolute_X},
+    OpCode{0x7b, "RRA", 3, 7, AddressingMode::Absolute_Y},
+    OpCode{0x63, "RRA", 2, 8, AddressingMode::Indirect_X},
+    OpCode{0x73, "RRA", 2, 8, AddressingMode::Indirect_Y},
+
     OpCode{0x69, "ADC", 2, 2, AddressingMode::Immediate},
     OpCode{0x65, "ADC", 2, 3, AddressingMode::ZeroPage},
     OpCode{0x75, "ADC", 2, 4, AddressingMode::ZeroPage_X},
@@ -23,6 +120,7 @@ static const std::vector<OpCode> CPU_OPS_CODES = {
     OpCode{0xf9, "SBC", 3, 4, AddressingMode::Absolute_Y},
     OpCode{0xe1, "SBC", 2, 6, AddressingMode::Indirect_X},
     OpCode{0xf1, "SBC", 2, 5, AddressingMode::Indirect_Y},
+    OpCode{0xeb, "SBC", 2, 2, AddressingMode::Immediate},  // Unofficial
 
     OpCode{0x29, "AND", 2, 2, AddressingMode::Immediate},
     OpCode{0x25, "AND", 2, 3, AddressingMode::ZeroPage},

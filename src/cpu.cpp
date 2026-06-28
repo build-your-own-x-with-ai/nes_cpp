@@ -538,7 +538,7 @@ void CPU::run_with_callback(std::function<void(CPU*)> callback) {
                 adc(opcode.mode);
                 break;
 
-            case 0xe9: case 0xe5: case 0xf5: case 0xed: case 0xfd: case 0xf9: case 0xe1: case 0xf1:
+            case 0xe9: case 0xe5: case 0xf5: case 0xed: case 0xfd: case 0xf9: case 0xe1: case 0xf1: case 0xeb:
                 sbc(opcode.mode);
                 break;
 
@@ -681,6 +681,22 @@ void CPU::run_with_callback(std::function<void(CPU*)> callback) {
                 break;
 
             case 0xea:
+                // Official NOP
+                break;
+
+            // Unofficial NOPs - these read the operand but do nothing
+            case 0x04: case 0x44: case 0x64:
+            case 0x14: case 0x34: case 0x54: case 0x74: case 0xd4: case 0xf4:
+            case 0x0c:
+            case 0x1c: case 0x3c: case 0x5c: case 0x7c: case 0xdc: case 0xfc:
+            case 0x1a: case 0x3a: case 0x5a: case 0x7a: case 0xda: case 0xfa:
+            case 0x80: case 0x82: case 0x89: case 0xc2: case 0xe2:
+                // These NOPs may read from memory (for addressing modes that require it)
+                // but they don't modify anything
+                if (opcode.mode != AddressingMode::NoneAddressing &&
+                    opcode.mode != AddressingMode::Immediate) {
+                    get_operand_address(opcode.mode);  // Read but discard
+                }
                 break;
 
             case 0xa8:
@@ -697,6 +713,46 @@ void CPU::run_with_callback(std::function<void(CPU*)> callback) {
                 break;
             case 0x98:
                 tya();
+                break;
+
+            // Unofficial LAX - Load A and X
+            case 0xa7: case 0xb7: case 0xaf: case 0xbf: case 0xa3: case 0xb3:
+                lax(opcode.mode);
+                break;
+
+            // Unofficial SAX - Store A AND X
+            case 0x87: case 0x97: case 0x83: case 0x8f:
+                sax(opcode.mode);
+                break;
+
+            // Unofficial DCP - Decrement then compare
+            case 0xc7: case 0xd7: case 0xcf: case 0xdf: case 0xdb: case 0xc3: case 0xd3:
+                dcp(opcode.mode);
+                break;
+
+            // Unofficial ISB - Increment then SBC
+            case 0xe7: case 0xf7: case 0xef: case 0xff: case 0xfb: case 0xe3: case 0xf3:
+                isb(opcode.mode);
+                break;
+
+            // Unofficial SLO - ASL then ORA
+            case 0x07: case 0x17: case 0x0f: case 0x1f: case 0x1b: case 0x03: case 0x13:
+                slo(opcode.mode);
+                break;
+
+            // Unofficial RLA - ROL then AND
+            case 0x27: case 0x37: case 0x2f: case 0x3f: case 0x3b: case 0x23: case 0x33:
+                rla(opcode.mode);
+                break;
+
+            // Unofficial SRE - LSR then EOR
+            case 0x47: case 0x57: case 0x4f: case 0x5f: case 0x5b: case 0x43: case 0x53:
+                sre(opcode.mode);
+                break;
+
+            // Unofficial RRA - ROR then ADC
+            case 0x67: case 0x77: case 0x6f: case 0x7f: case 0x7b: case 0x63: case 0x73:
+                rra(opcode.mode);
                 break;
 
             default:
@@ -727,4 +783,105 @@ void CPU::nmi() {
     status |= INTERRUPT_DISABLE_MASK;
     bus_.tick(2);
     program_counter = mem_read(0xFFFA) | (static_cast<uint16_t>(mem_read(0xFFFB)) << 8);
+}
+
+// Unofficial/Illegal opcodes implementation
+void CPU::lax(const AddressingMode& mode) {
+    uint16_t addr = get_operand_address(mode);
+    uint8_t value = mem_read(addr);
+    register_a = value;
+    register_x = value;
+    update_zero_and_negative_flags(register_a);
+}
+
+void CPU::sax(const AddressingMode& mode) {
+    uint16_t addr = get_operand_address(mode);
+    uint8_t value = register_a & register_x;
+    mem_write(addr, value);
+}
+
+void CPU::dcp(const AddressingMode& mode) {
+    uint16_t addr = get_operand_address(mode);
+    uint8_t data = mem_read(addr);
+    data = data - 1;
+    mem_write(addr, data);
+
+    if (data <= register_a) {
+        set_carry_flag();
+    } else {
+        clear_carry_flag();
+    }
+    update_zero_and_negative_flags(register_a - data);
+}
+
+void CPU::isb(const AddressingMode& mode) {
+    uint16_t addr = get_operand_address(mode);
+    uint8_t data = mem_read(addr);
+    data = data + 1;
+    mem_write(addr, data);
+    add_to_register_a((~data) & 0xFF);
+}
+
+void CPU::slo(const AddressingMode& mode) {
+    uint16_t addr = get_operand_address(mode);
+    uint8_t data = mem_read(addr);
+
+    if (data & 0x80) {
+        set_carry_flag();
+    } else {
+        clear_carry_flag();
+    }
+    data = data << 1;
+    mem_write(addr, data);
+
+    set_register_a(data | register_a);
+}
+
+void CPU::rla(const AddressingMode& mode) {
+    uint16_t addr = get_operand_address(mode);
+    uint8_t data = mem_read(addr);
+    uint8_t old_carry = (status & CARRY_FLAG_MASK) ? 1 : 0;
+
+    if (data & 0x80) {
+        set_carry_flag();
+    } else {
+        clear_carry_flag();
+    }
+    data = data << 1;
+    data |= old_carry;
+    mem_write(addr, data);
+
+    set_register_a(data & register_a);
+}
+
+void CPU::sre(const AddressingMode& mode) {
+    uint16_t addr = get_operand_address(mode);
+    uint8_t data = mem_read(addr);
+
+    if (data & 1) {
+        set_carry_flag();
+    } else {
+        clear_carry_flag();
+    }
+    data = data >> 1;
+    mem_write(addr, data);
+
+    set_register_a(data ^ register_a);
+}
+
+void CPU::rra(const AddressingMode& mode) {
+    uint16_t addr = get_operand_address(mode);
+    uint8_t data = mem_read(addr);
+    uint8_t old_carry = (status & CARRY_FLAG_MASK) ? 0x80 : 0;
+
+    if (data & 1) {
+        set_carry_flag();
+    } else {
+        clear_carry_flag();
+    }
+    data = data >> 1;
+    data |= old_carry;
+    mem_write(addr, data);
+
+    add_to_register_a(data);
 }
